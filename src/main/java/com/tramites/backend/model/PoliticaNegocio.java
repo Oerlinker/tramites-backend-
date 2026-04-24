@@ -36,8 +36,8 @@ public class PoliticaNegocio {
 
     private String diagramJson;
 
-    private String linkCompartido;   // UUID generated when shared
-    private String modoCompartido;   // "READONLY" or "COLABORATIVO"
+    private String linkCompartido;
+    private String modoCompartido;
 
     @Data
     @NoArgsConstructor

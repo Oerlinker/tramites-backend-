@@ -26,7 +26,7 @@ public class ColaboracionController {
     private final PoliticaNegocioService politicaNegocioService;
     private final UsuarioService usuarioService;
 
-    // Track active collaborators per politica: politicaId -> { username -> timestamp }
+
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, String>>
         colaboradoresActivos = new ConcurrentHashMap<>();
 
@@ -84,7 +84,7 @@ public class ColaboracionController {
         msg.put("autor", username);
         msg.put("timestamp", LocalDateTime.now().toString());
 
-        // Broadcast to all subscribers of this politica EXCEPT sender
+
         messagingTemplate.convertAndSend(
             "/topic/colaboracion/" + politicaId, (Object) msg);
     }

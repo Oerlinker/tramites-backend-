@@ -52,7 +52,6 @@ public class TramiteService {
                 .sorted(java.util.Comparator.comparingInt(PoliticaNegocio.PasoWorkflow::getOrden))
                 .collect(java.util.stream.Collectors.toList());
             for (PoliticaNegocio.PasoWorkflow paso : pasosOrdenados) {
-                // orden=1 is auto-completed below; orden=2 starts PENDIENTE; rest start BLOQUEADO
                 Actividad.EstadoActividad estadoInicial = paso.getOrden() <= 2
                         ? Actividad.EstadoActividad.PENDIENTE
                         : Actividad.EstadoActividad.BLOQUEADO;
@@ -74,9 +73,9 @@ public class TramiteService {
             }
         }
 
-        // Auto-complete the first actividad (client step) with tramite.datos
+
         if (!actividadesIds.isEmpty()) {
-            // Find the actividad with orden=1 explicitly (client step)
+
             actividadRepository.findByTramiteIdOrderByOrdenAsc(tramite.getId())
                 .stream()
                 .filter(a -> a.getOrden() == 1)
