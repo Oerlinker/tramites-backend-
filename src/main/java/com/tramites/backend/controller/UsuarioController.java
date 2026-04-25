@@ -127,6 +127,13 @@ public class UsuarioController {
         }
     }
 
+    @PatchMapping("/{id}/desactivar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> toggleEstado(@PathVariable String id){
+        return ResponseEntity.ok(usuarioService.toggleEstado(id));
+    }
+
+
     public record UpdateUsuarioRequest(String email, Set<String> roles, boolean activo, String departamentoId) {}
 
     public record CambiarPasswordRequest(String nuevaPassword) {}

@@ -97,4 +97,11 @@ public class UsuarioService {
             usuarioRepository.save(u);
         });
     }
+
+    public Usuario toggleEstado(String id){
+        Usuario u = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        u.setActivo(!u.isActivo());
+        return usuarioRepository.save(u);
+    }
 }
