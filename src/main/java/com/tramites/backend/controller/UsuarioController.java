@@ -133,6 +133,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.toggleEstado(id));
     }
 
+    @PatchMapping("/{id}/activar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?>toggleEstadoActivate(@PathVariable String id){
+        return ResponseEntity.ok(usuarioService.toggleEstado(id));
+    }
+
 
     public record UpdateUsuarioRequest(String email, Set<String> roles, boolean activo, String departamentoId) {}
 
