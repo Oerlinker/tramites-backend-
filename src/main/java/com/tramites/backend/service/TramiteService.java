@@ -36,7 +36,7 @@ public class TramiteService {
                 .descripcion(descripcion)
                 .politicaId(politicaId)
                 .usuarioSolicitanteId(usuarioSolicitanteId)
-                .estado(Tramite.EstadoTramite.EN_PROCESO)
+                .estado(Tramite.EstadoTramite.PENDIENTE)
                 .datos(datos)
                 .actividadesIds(new ArrayList<>())
                 .fechaInicio(LocalDateTime.now())

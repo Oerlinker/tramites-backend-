@@ -37,4 +37,6 @@ public class Usuario {
     private LocalDateTime fechaCreacion;
 
     private LocalDateTime ultimoAcceso;
+
+    private String fcmToken;
 }

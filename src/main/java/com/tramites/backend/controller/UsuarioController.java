@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -100,6 +101,15 @@ public class UsuarioController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PatchMapping("/me/fcm-token")
+    public ResponseEntity<?> actualizarFcmToken(
+            @RequestBody Map<String, String> body,
+            Authentication authentication) {
+        String token = body.get("fcmToken");
+        usuarioService.actualizarFcmToken(authentication.getName(), token);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/me/password")

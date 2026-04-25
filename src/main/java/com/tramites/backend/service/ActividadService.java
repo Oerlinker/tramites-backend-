@@ -4,6 +4,7 @@ import com.tramites.backend.model.Actividad;
 import com.tramites.backend.model.Tramite;
 import com.tramites.backend.repository.ActividadRepository;
 import com.tramites.backend.repository.TramiteRepository;
+import com.tramites.backend.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,9 @@ public class ActividadService {
 
     private final ActividadRepository actividadRepository;
     private final TramiteRepository tramiteRepository;
+    private final UsuarioRepository usuarioRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificacionService notificacionService;
 
     public List<Actividad> listarPorTramite(String tramiteId) {
         return actividadRepository.findByTramiteIdOrderByOrdenAsc(tramiteId);
@@ -41,6 +44,24 @@ public class ActividadService {
         actividad.setFechaInicio(LocalDateTime.now());
 
         actividad = actividadRepository.save(actividad);
+
+        // CAMBIO 2: Si el trámite estaba PENDIENTE, pasarlo a EN_PROCESO y notificar al solicitante
+        tramiteRepository.findById(actividad.getTramiteId()).ifPresent(tramite -> {
+            if (tramite.getEstado() == Tramite.EstadoTramite.PENDIENTE) {
+                tramite.setEstado(Tramite.EstadoTramite.EN_PROCESO);
+                tramite.setFechaActualizacion(LocalDateTime.now());
+                tramiteRepository.save(tramite);
+                notificarTramite(tramite.getId(), "TRAMITE_EN_PROCESO", tramite.getId());
+                usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante ->
+                    notificacionService.enviarNotificacion(
+                        solicitante.getFcmToken(),
+                        "Tu trámite está siendo procesado",
+                        "Un funcionario ha comenzado a trabajar en tu trámite: " + tramite.getTitulo()
+                    )
+                );
+            }
+        });
+
         notificarTramite(actividad.getTramiteId(), "ACTIVIDAD_INICIADA", actividadId);
         return actividad;
     }
@@ -65,6 +86,13 @@ public class ActividadService {
                 tramite.setFechaActualizacion(LocalDateTime.now());
                 tramiteRepository.save(tramite);
                 notificarTramite(tramite.getId(), "TRAMITE_RECHAZADO", tramite.getId());
+                usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante ->
+                    notificacionService.enviarNotificacion(
+                        solicitante.getFcmToken(),
+                        "Trámite rechazado",
+                        "Tu trámite \"" + tramite.getTitulo() + "\" ha sido rechazado"
+                    )
+                );
             });
         } else {
             desbloquearSiguienteActividad(actividad);
@@ -97,6 +125,15 @@ public class ActividadService {
                     siguiente.setEstado(Actividad.EstadoActividad.PENDIENTE);
                     actividadRepository.save(siguiente);
                     notificarTramite(completada.getTramiteId(), "ACTIVIDAD_DESBLOQUEADA", siguiente.getId());
+                    // Notificar a todos los funcionarios del departamento de la siguiente actividad
+                    if (siguiente.getDepartamentoId() != null) {
+                        usuarioRepository.findByDepartamentoId(siguiente.getDepartamentoId())
+                            .forEach(funcionario -> notificacionService.enviarNotificacion(
+                                funcionario.getFcmToken(),
+                                "Nueva actividad pendiente",
+                                "Tienes una nueva actividad pendiente en tu departamento"
+                            ));
+                    }
                 });
     }
 
@@ -154,6 +191,13 @@ public class ActividadService {
                 tramite.setEstado(Tramite.EstadoTramite.COMPLETADO);
                 tramite.setFechaFin(LocalDateTime.now());
                 notificarTramite(tramiteId, "TRAMITE_COMPLETADO", tramiteId);
+                usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante ->
+                    notificacionService.enviarNotificacion(
+                        solicitante.getFcmToken(),
+                        "Trámite completado",
+                        "Tu trámite \"" + tramite.getTitulo() + "\" ha sido completado exitosamente"
+                    )
+                );
             } else if (hayEnProceso && tramite.getEstado() == Tramite.EstadoTramite.PENDIENTE) {
                 tramite.setEstado(Tramite.EstadoTramite.EN_PROCESO);
                 notificarTramite(tramiteId, "TRAMITE_EN_PROCESO", tramiteId);

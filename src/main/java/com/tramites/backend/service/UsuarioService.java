@@ -90,4 +90,11 @@ public class UsuarioService {
         }
         usuarioRepository.deleteById(id);
     }
+
+    public void actualizarFcmToken(String username, String token) {
+        usuarioRepository.findByUsername(username).ifPresent(u -> {
+            u.setFcmToken(token);
+            usuarioRepository.save(u);
+        });
+    }
 }
