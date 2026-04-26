@@ -39,3 +39,4 @@ application-local.yml
 .claude/
 .env.example
 firebase-credentials.json
+firebase-service-account.json

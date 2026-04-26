@@ -6,6 +6,7 @@ import com.tramites.backend.repository.ActividadRepository;
 import com.tramites.backend.repository.TramiteRepository;
 import com.tramites.backend.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ActividadService {
@@ -47,19 +49,21 @@ public class ActividadService {
 
 
         tramiteRepository.findById(actividad.getTramiteId()).ifPresent(tramite -> {
+            log.info("Iniciando actividad: {}, tramite estado: {}", actividadId, tramite.getEstado());
             if (tramite.getEstado() == Tramite.EstadoTramite.PENDIENTE) {
                 tramite.setEstado(Tramite.EstadoTramite.EN_PROCESO);
                 tramite.setFechaActualizacion(LocalDateTime.now());
                 tramiteRepository.save(tramite);
                 notificarTramite(tramite.getId(), "TRAMITE_EN_PROCESO", tramite.getId());
-                usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante ->
-                    notificacionService.enviarNotificacion(
-                        solicitante.getFcmToken(),
-                        "Tu trámite está siendo procesado",
-                        "Un funcionario ha comenzado a trabajar en tu trámite: " + tramite.getTitulo()
-                    )
-                );
             }
+            usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante -> {
+                log.info("FCM token del solicitante: {}", solicitante.getFcmToken());
+                notificacionService.enviarNotificacion(
+                    solicitante.getFcmToken(),
+                    "Tu trámite está siendo atendido",
+                    "Un funcionario comenzó a revisar tu trámite"
+                );
+            });
         });
 
         notificarTramite(actividad.getTramiteId(), "ACTIVIDAD_INICIADA", actividadId);
