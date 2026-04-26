@@ -45,7 +45,7 @@ public class ActividadService {
 
         actividad = actividadRepository.save(actividad);
 
-        // CAMBIO 2: Si el trámite estaba PENDIENTE, pasarlo a EN_PROCESO y notificar al solicitante
+
         tramiteRepository.findById(actividad.getTramiteId()).ifPresent(tramite -> {
             if (tramite.getEstado() == Tramite.EstadoTramite.PENDIENTE) {
                 tramite.setEstado(Tramite.EstadoTramite.EN_PROCESO);
@@ -125,6 +125,16 @@ public class ActividadService {
                     siguiente.setEstado(Actividad.EstadoActividad.PENDIENTE);
                     actividadRepository.save(siguiente);
                     notificarTramite(completada.getTramiteId(), "ACTIVIDAD_DESBLOQUEADA", siguiente.getId());
+                    // Notificar al solicitante que el trámite avanzó al siguiente departamento
+                    tramiteRepository.findById(completada.getTramiteId()).ifPresent(tramite ->
+                        usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante ->
+                            notificacionService.enviarNotificacion(
+                                solicitante.getFcmToken(),
+                                "Tu trámite avanzó",
+                                "Tu trámite avanzó al siguiente departamento: " + siguiente.getNombreDepartamento()
+                            )
+                        )
+                    );
                     // Notificar a todos los funcionarios del departamento de la siguiente actividad
                     if (siguiente.getDepartamentoId() != null) {
                         usuarioRepository.findByDepartamentoId(siguiente.getDepartamentoId())

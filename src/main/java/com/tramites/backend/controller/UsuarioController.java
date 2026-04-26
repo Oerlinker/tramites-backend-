@@ -103,11 +103,12 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/me/fcm-token")
     @PatchMapping("/me/fcm-token")
     public ResponseEntity<?> actualizarFcmToken(
             @RequestBody Map<String, String> body,
             Authentication authentication) {
-        String token = body.get("fcmToken");
+        String token = body.getOrDefault("token", body.get("fcmToken"));
         usuarioService.actualizarFcmToken(authentication.getName(), token);
         return ResponseEntity.ok().build();
     }
