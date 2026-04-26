@@ -22,17 +22,29 @@ public class NotificacionService {
     public void inicializar() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                FileInputStream serviceAccount = new FileInputStream(
-                    System.getenv().getOrDefault("FIREBASE_CREDENTIALS_PATH",
-                    "src/main/resources/firebase-service-account.json"));
+                GoogleCredentials credentials;
+                String credentialsJson = System.getenv("FIREBASE_CREDENTIALS_JSON");
+                if (credentialsJson != null && !credentialsJson.isEmpty()) {
+                    log.info("Inicializando Firebase desde variable FIREBASE_CREDENTIALS_JSON");
+                    credentials = GoogleCredentials.fromStream(
+                        new java.io.ByteArrayInputStream(credentialsJson.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                    );
+                } else {
+                    log.info("Inicializando Firebase desde archivo local");
+                    credentials = GoogleCredentials.fromStream(
+                        new FileInputStream("src/main/resources/firebase-service-account.json")
+                    );
+                }
                 FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setCredentials(credentials)
                     .build();
                 FirebaseApp.initializeApp(options);
+                log.info("FirebaseApp inicializado correctamente");
             }
             this.messaging = FirebaseMessaging.getInstance();
+            log.info("FirebaseMessaging listo");
         } catch (Exception e) {
-            log.error("Firebase no configurado: {}", e.getMessage());
+            log.error("Firebase no configurado: {} - {}", e.getClass().getSimpleName(), e.getMessage());
         }
     }
 
