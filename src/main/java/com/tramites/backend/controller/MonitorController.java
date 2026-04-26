@@ -29,7 +29,7 @@ public class MonitorController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> listarActividades(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "200") int size) {
         List<Actividad> actividades = actividadRepository.findAll(
             PageRequest.of(page, size)).getContent();
         return ResponseEntity.ok(Map.of(
