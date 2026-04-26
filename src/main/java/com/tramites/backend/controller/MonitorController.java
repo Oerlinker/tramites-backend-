@@ -42,7 +42,7 @@ public class MonitorController {
     @PreAuthorize("hasRole('FUNCIONARIO')")
     public ResponseEntity<?> misActividades(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "200") int size,
             Authentication authentication) {
         String username = authentication.getName();
         var usuario = usuarioService.buscarPorUsername(username).orElseThrow();
