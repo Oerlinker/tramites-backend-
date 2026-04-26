@@ -129,7 +129,7 @@ public class ActividadService {
                     siguiente.setEstado(Actividad.EstadoActividad.PENDIENTE);
                     actividadRepository.save(siguiente);
                     notificarTramite(completada.getTramiteId(), "ACTIVIDAD_DESBLOQUEADA", siguiente.getId());
-                    // Notificar al solicitante que el trámite avanzó al siguiente departamento
+
                     tramiteRepository.findById(completada.getTramiteId()).ifPresent(tramite ->
                         usuarioRepository.findById(tramite.getUsuarioSolicitanteId()).ifPresent(solicitante ->
                             notificacionService.enviarNotificacion(
@@ -139,7 +139,7 @@ public class ActividadService {
                             )
                         )
                     );
-                    // Notificar a todos los funcionarios del departamento de la siguiente actividad
+
                     if (siguiente.getDepartamentoId() != null) {
                         usuarioRepository.findByDepartamentoId(siguiente.getDepartamentoId())
                             .forEach(funcionario -> notificacionService.enviarNotificacion(
@@ -209,7 +209,7 @@ public class ActividadService {
                     notificacionService.enviarNotificacion(
                         solicitante.getFcmToken(),
                         "Trámite completado",
-                        "Tu trámite \"" + tramite.getTitulo() + "\" ha sido completado exitosamente"
+                        "Tu trámite ha sido completado exitosamente"
                     )
                 );
             } else if (hayEnProceso && tramite.getEstado() == Tramite.EstadoTramite.PENDIENTE) {
