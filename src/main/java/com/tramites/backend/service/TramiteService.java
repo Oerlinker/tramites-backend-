@@ -7,12 +7,14 @@ import com.tramites.backend.repository.ActividadRepository;
 import com.tramites.backend.repository.PoliticaNegocioRepository;
 import com.tramites.backend.repository.TramiteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TramiteService {
@@ -24,37 +26,16 @@ public class TramiteService {
 
     public Tramite iniciar(String titulo, String descripcion, String politicaId,
                            String usuarioSolicitanteId, Map<String, Object> datos) {
+
+
         PoliticaNegocio politica = politicaNegocioRepository.findById(politicaId)
                 .orElseThrow(() -> new IllegalArgumentException("Política no encontrada: " + politicaId));
+
+
 
         if (!politica.isActiva()) {
             throw new IllegalStateException("La política no está activa: " + politicaId);
         }
-
-        // Resolve field IDs to readable labels using the first paso's form definition
-        PoliticaNegocio.PasoWorkflow primerPaso = politica.getPasos() != null
-                ? politica.getPasos().stream()
-                        .min(Comparator.comparingInt(PoliticaNegocio.PasoWorkflow::getOrden))
-                        .orElse(null)
-                : null;
-        List<PoliticaNegocio.CampoFormulario> campos = primerPaso != null ? primerPaso.getFormulario() : null;
-
-        Map<String, Object> datosLegibles = new LinkedHashMap<>();
-        if (datos != null && campos != null) {
-            Set<String> keysResueltas = new HashSet<>();
-            for (PoliticaNegocio.CampoFormulario campo : campos) {
-                if (datos.containsKey(campo.getId())) {
-                    datosLegibles.put(campo.getEtiqueta(), datos.get(campo.getId()));
-                    keysResueltas.add(campo.getId());
-                }
-            }
-            datos.forEach((k, v) -> {
-                if (!keysResueltas.contains(k)) {
-                    datosLegibles.put(k, v);
-                }
-            });
-        }
-        Map<String, Object> datosFinales = datosLegibles.isEmpty() ? datos : datosLegibles;
 
         Tramite tramite = Tramite.builder()
                 .titulo(titulo)
@@ -62,7 +43,7 @@ public class TramiteService {
                 .politicaId(politicaId)
                 .usuarioSolicitanteId(usuarioSolicitanteId)
                 .estado(Tramite.EstadoTramite.PENDIENTE)
-                .datos(datosFinales)
+                .datos(datos)
                 .actividadesIds(new ArrayList<>())
                 .fechaInicio(LocalDateTime.now())
                 .fechaActualizacion(LocalDateTime.now())
@@ -106,7 +87,7 @@ public class TramiteService {
                 .filter(a -> a.getOrden() == 1)
                 .findFirst()
                 .ifPresent(primera -> {
-                    primera.setDatosFormulario(datosFinales != null ? datosFinales : new HashMap<>());
+                    primera.setDatosFormulario(datos != null ? datos : new java.util.HashMap<>());
                     primera.setEstado(Actividad.EstadoActividad.COMPLETADO);
                     primera.setFechaInicio(LocalDateTime.now());
                     primera.setFechaFin(LocalDateTime.now());
