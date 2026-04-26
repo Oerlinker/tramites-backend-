@@ -94,7 +94,7 @@ public class ActividadService {
                     notificacionService.enviarNotificacion(
                         solicitante.getFcmToken(),
                         "Trámite rechazado",
-                        "Tu trámite \"" + tramite.getTitulo() + "\" ha sido rechazado"
+                        "Tu trámite  ha sido rechazado"
                     )
                 );
             });
