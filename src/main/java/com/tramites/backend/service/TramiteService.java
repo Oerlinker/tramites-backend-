@@ -31,13 +31,38 @@ public class TramiteService {
             throw new IllegalStateException("La política no está activa: " + politicaId);
         }
 
+        // Resolve field IDs to readable labels using the first paso's form definition
+        PoliticaNegocio.PasoWorkflow primerPaso = politica.getPasos() != null
+                ? politica.getPasos().stream()
+                        .min(Comparator.comparingInt(PoliticaNegocio.PasoWorkflow::getOrden))
+                        .orElse(null)
+                : null;
+        List<PoliticaNegocio.CampoFormulario> campos = primerPaso != null ? primerPaso.getFormulario() : null;
+
+        Map<String, Object> datosLegibles = new LinkedHashMap<>();
+        if (datos != null && campos != null) {
+            Set<String> keysResueltas = new HashSet<>();
+            for (PoliticaNegocio.CampoFormulario campo : campos) {
+                if (datos.containsKey(campo.getId())) {
+                    datosLegibles.put(campo.getEtiqueta(), datos.get(campo.getId()));
+                    keysResueltas.add(campo.getId());
+                }
+            }
+            datos.forEach((k, v) -> {
+                if (!keysResueltas.contains(k)) {
+                    datosLegibles.put(k, v);
+                }
+            });
+        }
+        Map<String, Object> datosFinales = datosLegibles.isEmpty() ? datos : datosLegibles;
+
         Tramite tramite = Tramite.builder()
                 .titulo(titulo)
                 .descripcion(descripcion)
                 .politicaId(politicaId)
                 .usuarioSolicitanteId(usuarioSolicitanteId)
                 .estado(Tramite.EstadoTramite.PENDIENTE)
-                .datos(datos)
+                .datos(datosFinales)
                 .actividadesIds(new ArrayList<>())
                 .fechaInicio(LocalDateTime.now())
                 .fechaActualizacion(LocalDateTime.now())
@@ -81,7 +106,7 @@ public class TramiteService {
                 .filter(a -> a.getOrden() == 1)
                 .findFirst()
                 .ifPresent(primera -> {
-                    primera.setDatosFormulario(datos != null ? datos : new java.util.HashMap<>());
+                    primera.setDatosFormulario(datosFinales != null ? datosFinales : new HashMap<>());
                     primera.setEstado(Actividad.EstadoActividad.COMPLETADO);
                     primera.setFechaInicio(LocalDateTime.now());
                     primera.setFechaFin(LocalDateTime.now());
