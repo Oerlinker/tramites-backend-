@@ -18,6 +18,9 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
 
+gcs:
+  bucket-name: tramites-documentos-494314
+
 logging:
   level:
     org:

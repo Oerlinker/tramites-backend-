@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/politicas/compartido/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/usuarios/me", "/api/usuarios/me/password").authenticated()
+                        .requestMatchers("/api/documentos/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
