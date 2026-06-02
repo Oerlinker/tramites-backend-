@@ -19,7 +19,7 @@ jwt:
   expiration: ${JWT_EXPIRATION}
 
 gcs:
-  bucket-name: tramites-documentos-494314
+    bucket-name: tramites-documentos-2026
 
 logging:
   level:
