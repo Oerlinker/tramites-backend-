@@ -32,7 +32,7 @@ public class NotificacionService {
                 } else {
                     log.info("Inicializando Firebase desde archivo local");
                     credentials = GoogleCredentials.fromStream(
-                        new FileInputStream("src/main/resources/firebase-service-account.json")
+                        getClass().getClassLoader().getResourceAsStream("firebase-service-account.json")
                     );
                 }
                 FirebaseOptions options = FirebaseOptions.builder()
