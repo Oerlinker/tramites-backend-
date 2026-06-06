@@ -45,6 +45,7 @@ public class Actividad {
     private LocalDateTime fechaFin;
 
     private List<Comentario> comentarios;
+    private List<EntradaHistorial> historial;
 
     public enum EstadoActividad {
         BLOQUEADO, PENDIENTE, EN_PROCESO, COMPLETADO, OMITIDO
@@ -57,6 +58,18 @@ public class Actividad {
     public static class Comentario {
         private String autorId;
         private String contenido;
+        private LocalDateTime fecha;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class EntradaHistorial {
+        private String tipo;        // FORMULARIO_GUARDADO, BORRADOR, INICIADA, COMPLETADA, DOCUMENTO_SUBIDO
+        private String autorId;
+        private String autorNombre;
+        private String descripcion;
         private LocalDateTime fecha;
     }
 }

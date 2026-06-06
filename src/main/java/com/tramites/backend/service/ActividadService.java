@@ -45,6 +45,7 @@ public class ActividadService {
         actividad.setEstado(Actividad.EstadoActividad.EN_PROCESO);
         actividad.setFechaInicio(LocalDateTime.now());
 
+        agregarHistorial(actividad, "INICIADA", responsableId, responsableId, "Actividad iniciada");
         actividad = actividadRepository.save(actividad);
 
 
@@ -81,6 +82,8 @@ public class ActividadService {
             agregarComentarioInterno(actividad, autorId, comentario);
         }
 
+        String autorNombre = autorId != null ? autorId : "sistema";
+        agregarHistorial(actividad, "COMPLETADA", autorId, autorNombre, "Actividad completada");
         actividad = actividadRepository.save(actividad);
 
         if (tieneValorRechazo(actividad.getDatosFormulario())) {
@@ -226,5 +229,19 @@ public class ActividadService {
         mensaje.put("tipo", tipo);
         mensaje.put("payload", payload);
         messagingTemplate.convertAndSend("/topic/tramites/" + tramiteId, mensaje);
+    }
+
+    private void agregarHistorial(Actividad actividad, String tipo,
+                                   String autorId, String autorNombre, String descripcion) {
+        List<Actividad.EntradaHistorial> historial = actividad.getHistorial();
+        if (historial == null) historial = new ArrayList<>();
+        historial.add(Actividad.EntradaHistorial.builder()
+                .tipo(tipo)
+                .autorId(autorId)
+                .autorNombre(autorNombre)
+                .descripcion(descripcion)
+                .fecha(LocalDateTime.now())
+                .build());
+        actividad.setHistorial(historial);
     }
 }
